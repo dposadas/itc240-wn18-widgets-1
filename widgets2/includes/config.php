@@ -1,112 +1,171 @@
-<?php 
-/* config.php for widgets
-put configuration information here
+<?php
+/*
+config.php
+
+stores configuration information for our web application
 
 */
-// functions to debug
-define('DEBUG',TRUE); #we want to see all errors
 
-define('THIS_PAGE', basename($_SERVER['PHP_SELF']));
+//removes header already sent errors
+ob_start();
 
-$nav1['index.php'] = 'HOME';
-$nav1['customers.php'] = 'CUSTOMERS';
-$nav1['daily.php'] = 'DAILY';
-$nav1['oscarmovies_list.php'] = 'MOVIES';
-$nav1['contact.php'] = 'CONTACT US1';
-$nav1['contact2.php'] = 'CONTACT US2';
+define('SECURE',false); #force secure, https, for all site pages
 
-//defaults for header.php
-$banner = 'WIDGETS';
-$slogan = 'The Widgets with the Mostest!';
+define('PREFIX', 'widgets_wn18_'); #Adds uniqueness to your DB table names.  Limits hackability, naming collisions
+
+header("Cache-Control: no-cache");header("Expires: -1");#Helps stop browser & proxy caching
+
+define('DEBUG',true); #we want to see all errors
+
+include 'credentials.php';//stores database info
+include 'common.php';//stores favorite functions
+
+//prevents date errors
+date_default_timezone_set('America/Los_Angeles');
+
+//create config object
+$config = new stdClass;
+
+//these are the navigation links
+$config->nav1['index.php'] = 'HOME';
+$config->nav1['customers.php'] = 'CUSTOMERS';
+$config->nav1['daily.php'] = 'DAILY';
+$config->nav1['oscarmovies_list.php'] = 'MOVIES';
+$config->nav1['contact.php'] = 'CONTACT US1';
+$config->nav1['contact2.php'] = 'CONTACT US2';
+
+//create default page identifier
+define('THIS_PAGE',basename($_SERVER['PHP_SELF']));
+
+//START NEW THEME STUFF - be sure to add trailing slash!
+$sub_folder = 'widgets2/';//change to 'widgets' or 'sprockets' etc.
+$config->theme = 'Coffee';//sub folder to themes
+
+//will add sub-folder if not loaded to root:
+$config->physical_path = $_SERVER["DOCUMENT_ROOT"] . '/' . $sub_folder;
+//force secure website
+if (SECURE && $_SERVER['SERVER_PORT'] != 443) {#force HTTPS
+	header("Location: https://".$_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI']);
+}else{
+    //adjust protocol
+    $protocol = (SECURE==true ? 'https://' : 'http://'); // returns true
+    
+}
+$config->virtual_path = $protocol . $_SERVER["HTTP_HOST"] . '/' . $sub_folder;
+
+define('ADMIN_PATH', $config->virtual_path . '/admin/'); # Could change to sub folder
+define('INCLUDE_PATH', $config->physical_path . '/includes/');
+
+//END NEW THEME STUFF
+
+//set website defaults
+$config->title = THIS_PAGE;
+$config->banner = 'Widgets';
+$config->slogan = 'The Widgets with the Mostest!';
+$config->loadhead = '';//place items in <head> element
 
 switch(THIS_PAGE){
-    case 'template.php':
-        $title = 'Template page';
-        $PageID = 'Template';
-        $logo = 'fa-home';
+     /*   
+    case 'contact.php':    
+        $config->title = 'Contact Page';    
     break;
     
+    case 'appointment.php':    
+        $config->title = 'Appointment Page';
+        $config->banner = 'Widget Appointments!';
+    break;
+        
+    case 'template.php':    
+        $config->title = 'Template Page';    
+    break;    */
+    case 'template.php':
+        $config->title = 'Template page';
+        $config->PageID = 'Template';
+        $config->logo = 'fa-home';
+    break;
+
     case 'index.php':
-        $title = 'Home';
-        $PageID = 'Welcome';
-        $logo = 'fa-home';
+        $config->title = 'Home';
+        $config->PageID = 'Welcome';
+        $config->logo = 'fa-home';
     break;
 
     case 'customers.php':
-        $title = 'Customers';
-        $PageID = 'Customers';
-        $logo = 'fa-users';
+        $config->title = 'Customers';
+        $config->PageID = 'Customers';
+        $config->logo = 'fa-users';
     break;
-        
+
     case 'daily.php':
-        $title = 'Daily Specials';
-        $PageID = 'Daily Specials';
-        $logo = 'fa-calendar-alt';
+        $config->title = 'Daily Specials';
+        $config->PageID = 'Daily Specials';
+        $config->logo = 'fa-calendar-alt';
     break;
-    
+
     case 'oscarmovies_list.php':
-        $title = 'Oscar Movies';
-        $PageID = 'Oscar Nominated Movies';
-        $logo = 'fa-film';
+        $config->title = 'Oscar Movies';
+        $config->PageID = 'Oscar Nominated Movies';
+        $config->logo = 'fa-film';
     break;
-        
+
     case 'contact.php':
-        $title = 'Contact Us';
-        $PageID = 'Contact Us';
-        $logo = 'fa-envelope';
+        $config->title = 'Contact Us';
+        $config->PageID = 'Contact Us';
+        $config->logo = 'fa-envelope';
     break;
-    
+
     case 'contact2.php':
-        $title = 'Contact Us More';
-        $PageID = 'Detailed Contact Us';
-        $logo = 'fa-envelope';
+        $config->title = 'Contact Us More';
+        $config->PageID = 'Detailed Contact Us';
+        $config->logo = 'fa-envelope';
     break;
-    
+
     default:
-        $title = THIS_PAGE;
-        $PageID = '';
-        $logo = 'fa-arrow-alt-circle-down';
+        $config->title = THIS_PAGE;
+        $config->PageID = '';
+        $config->logo = 'fa-arrow-alt-circle-down';
+      
 }
 
-//other include files referenced here
-include 'credentials.php';
+//START NEW THEME STUFF
+//creates theme virtual path for theme assets, JS, CSS, images
+$config->theme_virtual = $config->virtual_path . 'themes/' . $config->theme . '/';
+//END NEW THEME STUFF
 
-// Error messaging function
-function myerror($myFile, $myLine, $errorMsg)
-{
-    if(defined('DEBUG') && DEBUG)
-    {
-       echo "Error in file: <b>" . $myFile . "</b> on line: <b>" . $myLine . "</b><br />";
-       echo "Error Message: <b>" . $errorMsg . "</b><br />";
-       die();
-    }else{
-        echo "I'm sorry, we have encountered an error.";
-        die();
-    }
-}
-
-//nav function
-function coffee_links($nav1){
+/*
+ * adminWidget allows clients to get to admin page from anywhere
+ * code will show/hide based on logged in status
+*/
+/*
+ * adminWidget allows clients to get to admin page from anywhere
+ * code will show/hide based on logged in status
+*/
+if(startSession() && isset($_SESSION['AdminID']))
+{#add admin logged in info to sidebar or nav
     
-foreach($nav1 as $url => $text){
-    //echo '<li><a href="' . $url . '">' . $text . '</a></li>';
+    $config->adminWidget = '
+        <a href="' . ADMIN_PATH . 'admin_dashboard.php">ADMIN</a> 
+        <a href="' . ADMIN_PATH . 'admin_logout.php">LOGOUT</a>
+    ';
+}else{//show login (YOU MAY WANT TO SET TO EMPTY STRING FOR SECURITY)
     
-    if(THIS_PAGE == $url)
-    {//current page-add highlight
-        echo '
-         <li class="nav-item active px-lg-4">
-          <a class="nav-link text-uppercase text-expanded" href="' . $url . '">' . $text . '</a>
-         </li>
-        ';
-    }else{//no highlight
-        echo '
-         <li class="nav-item px-lg-4">
-          <a class="nav-link text-uppercase text-expanded" href="' . $url . '">' . $text . '</a>
-         </li>
-        '; 
-    }
+    $config->adminWidget = '
+        <a  href="' . ADMIN_PATH . 'admin_login.php">LOGIN</a>
+    ';
 }
-
-}//end coffee_links() function
-
 ?>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
